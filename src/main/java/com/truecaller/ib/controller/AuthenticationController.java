@@ -31,14 +31,14 @@ public class AuthenticationController {
     public ResponseEntity<?> createAuthentication(@RequestBody AuthenticationRequest request) throws Exception{
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(),
+                    new UsernamePasswordAuthenticationToken(request.getPhone(),
                             request.getPassword())
             );
         }catch (BadCredentialsException e){
             throw new BadRequestException("Invalid credentials or account doesn't exists.");
         }
 
-        final UserDetails userDetails = userDetailService.loadUserByUsername(request.getUsername());
+        final UserDetails userDetails = userDetailService.loadUserByUsername(request.getPhone());
 
         final String jwt = jwtUtil.generateToken(userDetails);
 

@@ -13,10 +13,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -32,22 +33,31 @@ public class UserServiceImpl implements UserService{
 
 
     @Override
-    public ResponseEntity<?> createUser(SignUpRequest signUpRequest) throws BadRequestException{
-        Optional<User> user = userRepository.findByUsername(signUpRequest.getUsername());
-        if (user.isPresent())
-            throw new BadRequestException("User already exists.");
+    public ResponseEntity<?> createUser(SignUpRequest signUpRequest) throws BadRequestException {
+
+        if ((Objects.isNull(signUpRequest.getName()) || signUpRequest.getName().isEmpty()) ||
+                (Objects.isNull(signUpRequest.getPhone()) || signUpRequest.getPhone().isEmpty()))
+            throw new BadRequestException("Name and phone are required.");
+
+        if (Objects.nonNull(signUpRequest.getPhone()) && (signUpRequest.getPhone().length() != 10 ||
+                signUpRequest.getPhone().startsWith("0")))
+            throw new BadRequestException("Invalid phone number.");
+
 
         User newUser = new User();
-        newUser.setActive(true);
-        newUser.setRoles("ROLE_USER");
-        newUser.setUsername(signUpRequest.getUsername());
+        newUser.setEmail(Objects.isNull(signUpRequest.getEmail()) ||
+                signUpRequest.getEmail().isEmpty() ? null : signUpRequest.getEmail());
         newUser.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
         newUser.setPhone(signUpRequest.getPhone());
         newUser.setName(signUpRequest.getName());
-        userRepository.save(newUser);
 
+        try {
+            userRepository.save(newUser);
+        } catch (Exception exception) {
+            throw new BadRequestException("This number is already registered.");
+        }
 
-        final UserDetails userDetails = userDetailService.loadUserByUsername(signUpRequest.getUsername());
+        final UserDetails userDetails = userDetailService.loadUserByUsername(signUpRequest.getPhone());
         final String jwt = jwtUtil.generateToken(userDetails);
         return ResponseEntity.ok(new AuthenticationResponse(jwt));
 

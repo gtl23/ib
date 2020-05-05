@@ -2,32 +2,24 @@ package com.truecaller.ib.security;
 
 import com.truecaller.ib.entity.User;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import java.util.Arrays;
+
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class CustomUserDetail implements UserDetails {
 
-    private final String username;
+    private final String phone;
     private final String password;
-    private final boolean active;
-    private final List<GrantedAuthority> authorities;
 
     public CustomUserDetail (User user){
-        this.username = user.getUsername();
+        this.phone = user.getPhone();
         this.password = user.getPassword();
-        this.active = user.isActive();
-        this.authorities = Arrays.stream(user.getRoles().split(","))
-                .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+        return null;
     }
 
     @Override
@@ -37,7 +29,7 @@ public class CustomUserDetail implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return phone;
     }
 
     @Override
@@ -57,6 +49,6 @@ public class CustomUserDetail implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return active;
+        return true;
     }
 }

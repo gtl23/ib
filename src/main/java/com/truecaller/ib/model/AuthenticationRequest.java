@@ -2,24 +2,24 @@ package com.truecaller.ib.model;
 
 public class AuthenticationRequest {
 
-    private String username;
+    private String phone;
 
     private String password;
 
     public AuthenticationRequest() {
     }
 
-    public AuthenticationRequest(String username, String password) {
-        this.username = username;
+    public AuthenticationRequest(String phone, String password) {
+        this.phone = phone;
         this.password = password;
     }
 
-    public String getUsername() {
-        return username;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public String getPassword() {
