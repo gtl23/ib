@@ -15,15 +15,9 @@ public class UserController {
     @Autowired
     UserService userService;
 
-    @GetMapping("/login")
-    public String login(){
-        return "Login Successful..!!";
-    }
-
     @PostMapping("/sign_up")
     public ResponseEntity<?> signUp(@RequestBody SignUpRequest signUpRequest) throws BadRequestException {
         return userService.createUser(signUpRequest);
-//        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }
