@@ -1,4 +1,4 @@
-package com.truecaller.ib.model;
+package com.truecaller.ib.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

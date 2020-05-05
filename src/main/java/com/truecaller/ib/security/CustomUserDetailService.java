@@ -1,6 +1,6 @@
 package com.truecaller.ib.security;
 
-import com.truecaller.ib.model.User;
+import com.truecaller.ib.entity.User;
 import com.truecaller.ib.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

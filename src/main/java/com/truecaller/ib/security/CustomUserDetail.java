@@ -1,6 +1,6 @@
 package com.truecaller.ib.security;
 
-import com.truecaller.ib.model.User;
+import com.truecaller.ib.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
