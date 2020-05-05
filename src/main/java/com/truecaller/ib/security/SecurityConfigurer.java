@@ -15,7 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
 
     @Autowired
-    UserDetailsService userDetailsService;
+    CustomUserDetailService userDetailsService;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -33,7 +33,7 @@ public class SecurityConfigurer extends WebSecurityConfigurerAdapter {
     /**
      *
      * Using NoOpPasswordEncoder for the testing purpose only,
-     * not to be used for production purpose
+     * not suitable to be used for production purpose
      */
     @Bean
     public PasswordEncoder getPasswordEncoder(){
