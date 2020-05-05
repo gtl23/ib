@@ -1,5 +1,6 @@
 package com.truecaller.ib.controller;
 
+import com.truecaller.ib.exceptions.BadRequestException;
 import com.truecaller.ib.model.AuthenticationRequest;
 import com.truecaller.ib.model.AuthenticationResponse;
 import com.truecaller.ib.security.CustomUserDetailService;
@@ -34,7 +35,7 @@ public class AuthenticationController {
                             request.getPassword())
             );
         }catch (BadCredentialsException e){
-            throw new Exception("Incorrect username or password.!");
+            throw new BadRequestException("Invalid credentials or account doesn't exists.");
         }
 
         final UserDetails userDetails = userDetailService.loadUserByUsername(request.getUsername());

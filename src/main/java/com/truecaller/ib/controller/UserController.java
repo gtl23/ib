@@ -1,16 +1,29 @@
 package com.truecaller.ib.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.truecaller.ib.exceptions.BadRequestException;
+import com.truecaller.ib.model.SignUpRequest;
+import com.truecaller.ib.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
-    @GetMapping("/hello")
-    public String hello(){
-        return "Hello";
+    @Autowired
+    UserService userService;
+
+    @GetMapping("/login")
+    public String login(){
+        return "Login Successful..!!";
+    }
+
+    @PostMapping("/sign_up")
+    public ResponseEntity<?> signUp(@RequestBody SignUpRequest signUpRequest) throws BadRequestException {
+        return userService.createUser(signUpRequest);
+//        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }
