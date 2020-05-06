@@ -217,8 +217,10 @@ public class UserServiceImpl implements UserService {
             SearchResult searchResult = new SearchResult(user.get().getName(),
                     user.get().getPhone(), spamCount);
 
-            if (inPersonsContacts(user.get(), userDetail))
+            if (inPersonsContacts(user.get(), userDetail)){
+                logger.info(ResponseMessages.IN_CONTACT);
                 searchResult.setEmail(user.get().getEmail());
+            }
 
             searchResultList.add(searchResult);
         } else {

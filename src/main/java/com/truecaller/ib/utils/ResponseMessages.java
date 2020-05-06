@@ -18,5 +18,6 @@ public class ResponseMessages {
     public static final String MARKED_SPAM = "Spam marked.";
     public static final String SEARCH_BY_NUMBER_RESPONSE = "Returning search by number response.";
     public static final String NUMBER_DETAIL_RESPONSE = "Returning number detail response.";
+    public static final String IN_CONTACT = "Logged in user is in contact list of requested number.";
 
 }
