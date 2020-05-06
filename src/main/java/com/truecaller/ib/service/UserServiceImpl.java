@@ -13,6 +13,8 @@ import com.truecaller.ib.security.CustomUserDetail;
 import com.truecaller.ib.security.CustomUserDetailService;
 import com.truecaller.ib.security.JwtUtil;
 import com.truecaller.ib.utils.ResponseMessages;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -23,7 +25,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,17 +52,24 @@ public class UserServiceImpl implements UserService {
     @Autowired
     ContactsRepository contactsRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
 
     @Override
     public ResponseEntity<?> createUser(SignUpRequest signUpRequest) throws BadRequestException {
+        logger.info("Inside UserServiceImpl.createUser().......");
 
         if ((Objects.isNull(signUpRequest.getName()) || signUpRequest.getName().isEmpty()) ||
-                (Objects.isNull(signUpRequest.getPhone()) || signUpRequest.getPhone().isEmpty()))
+                (Objects.isNull(signUpRequest.getPhone()) || signUpRequest.getPhone().isEmpty())) {
+            logger.info(ResponseMessages.NAME_AND_PHONE_REQUIRED);
             throw new BadRequestException(ResponseMessages.NAME_AND_PHONE_REQUIRED);
+        }
 
         if (Objects.nonNull(signUpRequest.getPhone()) && (signUpRequest.getPhone().length() != 10 ||
-                signUpRequest.getPhone().startsWith("0")))
+                signUpRequest.getPhone().startsWith("0"))){
+            logger.info(ResponseMessages.INVALID_PHONE_NUMBER);
             throw new BadRequestException(ResponseMessages.INVALID_PHONE_NUMBER);
+        }
 
 
         User newUser = new User();
@@ -70,11 +82,13 @@ public class UserServiceImpl implements UserService {
         try {
             userRepository.save(newUser);
         } catch (Exception exception) {
+            logger.info(ResponseMessages.ALREADY_REGISTERED);
             throw new BadRequestException(ResponseMessages.ALREADY_REGISTERED);
         }
 
         final UserDetails userDetails = userDetailService.loadUserByUsername(signUpRequest.getPhone());
         final String jwt = jwtUtil.generateToken(userDetails);
+        logger.info(ResponseMessages.SIGN_UP_SUCCESSFUL);
         return new ResponseEntity<>(new AuthenticationResponse(jwt), HttpStatus.CREATED);
 
     }
@@ -82,17 +96,22 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> searchByName(String key, int pageNo, int pageSize)
             throws BadRequestException, NotFoundException {
+        logger.info("Inside UserServiceImpl.searchByName().......");
 
-        if (key.trim().isEmpty())
+        if (key.trim().isEmpty()){
+            logger.info(ResponseMessages.NO_SEARCH_KEY);
             throw new BadRequestException(ResponseMessages.NO_SEARCH_KEY);
+        }
 
         pageNo = pageNo / pageSize;
 
         Page<SearchProjection> searchProjectionList =
                 userRepository.searchByName(key, PageRequest.of(pageNo, pageSize));
 
-        if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty())
+        if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty()){
+            logger.info(ResponseMessages.NO_RECORDS_FOUND);
             throw new NotFoundException(ResponseMessages.NO_RECORDS_FOUND);
+        }
 
         List<SearchResult> searchResults = new ArrayList<>();
         searchProjectionList.getContent().forEach(searchProjection -> {
@@ -103,6 +122,8 @@ public class UserServiceImpl implements UserService {
             searchResults.add(searchResult);
         });
 
+        logger.info(ResponseMessages.SEARCH_BY_NAME_RESPONSE);
+
         return new ResponseEntity<>(new SearchResponse(searchResults, searchProjectionList.getTotalElements())
                 , HttpStatus.OK);
     }
@@ -110,23 +131,29 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> markSpam(String phone, CustomUserDetail userDetail) throws BadRequestException {
 
-        if (phone.trim().isEmpty())
+        logger.info("Inside UserServiceImpl.markSpam().......");
+
+        if (phone.trim().isEmpty()){
+            logger.info(ResponseMessages.NO_PHONE_PROVIDED);
             throw new BadRequestException(ResponseMessages.NO_PHONE_PROVIDED);
+        }
 
         Spam spam = new Spam();
         spam.setPhone(phone.trim());
 
         Optional<User> user = userRepository.findByPhone(userDetail.getUsername());
-        User userData =  user.orElseThrow(() -> new BadRequestException(ResponseMessages.NOT_REGISTERED));
+        User userData = user.orElseThrow(() -> new BadRequestException(ResponseMessages.NOT_REGISTERED));
 
         spam.setReportedBy(userData.getId());
 
         try {
             spamRepository.save(spam);
         } catch (Exception e) {
+            logger.info(ResponseMessages.ALREADY_REPORTED_SPAM);
             throw new BadRequestException(ResponseMessages.ALREADY_REPORTED_SPAM);
         }
 
+        logger.info(ResponseMessages.MARKED_SPAM);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -134,8 +161,12 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> searchByNumber(String key, int pageNo, int pageSize)
             throws BadRequestException, NotFoundException {
 
-        if (key.trim().isEmpty() || key.length() != 10)
-            throw new BadRequestException("Invalid phone number.");
+        logger.info("Inside UserServiceImpl.searchByNumber().......");
+
+        if (key.trim().isEmpty() || key.length() != 10){
+            logger.info(ResponseMessages.INVALID_PHONE_NUMBER);
+            throw new BadRequestException(ResponseMessages.INVALID_PHONE_NUMBER);
+        }
 
         Optional<User> user = userRepository.findByPhone(key);
         SearchResponse searchResponses = new SearchResponse();
@@ -151,8 +182,10 @@ public class UserServiceImpl implements UserService {
             Page<SearchProjection> searchProjectionList =
                     contactsRepository.findByPhone(key.trim(), PageRequest.of(pageNo, pageSize));
 
-            if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty())
-                throw new NotFoundException("No records found");
+            if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty()){
+                logger.info(ResponseMessages.NO_RECORDS_FOUND);
+                throw new NotFoundException(ResponseMessages.NO_RECORDS_FOUND);
+            }
 
             searchProjectionList.getContent().forEach(searchProjection -> {
                 SearchResult searchResult = new SearchResult();
@@ -160,9 +193,9 @@ public class UserServiceImpl implements UserService {
                 searchResultList.add(searchResult);
             });
 
+            logger.info(ResponseMessages.SEARCH_BY_NUMBER_RESPONSE);
             return new ResponseEntity<>(new SearchResponse(searchResultList, searchProjectionList.getTotalElements())
                     , HttpStatus.OK);
-
         }
     }
 
@@ -170,13 +203,17 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> getNumberDetails(String phone, CustomUserDetail userDetail)
             throws BadRequestException {
 
-        if (phone.trim().isEmpty() || phone.length() != 10)
+        logger.info("Inside UserServiceImpl.getNumberDetails().......");
+
+        if (phone.trim().isEmpty() || phone.length() != 10){
+            logger.info(ResponseMessages.INVALID_PHONE_NUMBER);
             throw new BadRequestException(ResponseMessages.INVALID_PHONE_NUMBER);
+        }
 
         List<SearchResult> searchResultList = new ArrayList<>();
         Long spamCount = spamRepository.getSpamCount(phone.trim());
         Optional<User> user = userRepository.findByPhone(phone);
-        if (user.isPresent()){
+        if (user.isPresent()) {
             SearchResult searchResult = new SearchResult(user.get().getName(),
                     user.get().getName(), spamCount);
 
@@ -186,14 +223,17 @@ public class UserServiceImpl implements UserService {
             searchResultList.add(searchResult);
         } else {
             List<SearchProjection> contacts = contactsRepository.findByPhone(phone);
-            if (Objects.isNull(contacts) || contacts.isEmpty())
+            if (Objects.isNull(contacts) || contacts.isEmpty()){
+                logger.info(ResponseMessages.NO_DETAILS_FOUND);
                 throw new BadRequestException(ResponseMessages.NO_DETAILS_FOUND);
+            }
 
             searchResultList = contacts.stream()
                     .map(contact -> new SearchResult(contact.getName(), contact.getPhone(), spamCount))
                     .collect(Collectors.toList());
         }
 
+        logger.info(ResponseMessages.NUMBER_DETAIL_RESPONSE);
         return new ResponseEntity<>(new SearchResponse(searchResultList), HttpStatus.OK);
     }
 
