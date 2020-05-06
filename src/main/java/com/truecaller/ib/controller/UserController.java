@@ -45,4 +45,12 @@ public class UserController {
         return userService.searchByNumber(key, pageNo, pageSize);
     }
 
+    @GetMapping("/details")
+    public ResponseEntity<?> numberDetails(@RequestParam String phone,
+                                           @RequestParam(required = false) String name,
+                                           @AuthenticationPrincipal CustomUserDetail userDetail)
+            throws BadRequestException {
+        return userService.getNumberDetails(phone, name, userDetail);
+    }
+
 }

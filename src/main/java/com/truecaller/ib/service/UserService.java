@@ -14,4 +14,6 @@ public interface UserService {
     ResponseEntity<?> markSpam(String phone, CustomUserDetail userDetail) throws BadRequestException;
 
     ResponseEntity<?> searchByNumber(String key, int pageNo, int pageSize) throws BadRequestException, NotFoundException;
+
+    ResponseEntity<?> getNumberDetails(String phone, String name, CustomUserDetail userDetail) throws BadRequestException;
 }
