@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -166,34 +167,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<?> getNumberDetails(String phone, String name, CustomUserDetail userDetail)
+    public ResponseEntity<?> getNumberDetails(String phone, CustomUserDetail userDetail)
             throws BadRequestException {
 
         if (phone.trim().isEmpty() || phone.length() != 10)
             throw new BadRequestException(ResponseMessages.INVALID_PHONE_NUMBER);
 
-        SearchResult searchResult = new SearchResult();
+        List<SearchResult> searchResultList = new ArrayList<>();
+        Long spamCount = spamRepository.getSpamCount(phone.trim());
         Optional<User> user = userRepository.findByPhone(phone);
         if (user.isPresent()){
-            searchResult.setName(user.get().getName());
-            searchResult.setPhone(user.get().getPhone());
+            SearchResult searchResult = new SearchResult(user.get().getName(),
+                    user.get().getName(), spamCount);
 
             if (inPersonsContacts(user.get(), userDetail))
                 searchResult.setEmail(user.get().getEmail());
+
+            searchResultList.add(searchResult);
         } else {
-            if (Objects.isNull(name) || name.isEmpty())
-                throw new BadRequestException(ResponseMessages.NAME_REQUIRED);
+            List<SearchProjection> contacts = contactsRepository.findByPhone(phone);
+            if (Objects.isNull(contacts) || contacts.isEmpty())
+                throw new BadRequestException(ResponseMessages.NO_DETAILS_FOUND);
 
-            Optional<Contacts> contacts = contactsRepository.findByPhoneAndName(phone, name);
-            Contacts contactsData =  contacts.orElseThrow(() -> new BadRequestException(ResponseMessages.NO_DETAILS_FOUND));
-
-            searchResult.setName(contactsData.getName());
-            searchResult.setPhone(contactsData.getPhone());
+            searchResultList = contacts.stream()
+                    .map(contact -> new SearchResult(contact.getName(), contact.getPhone(), spamCount))
+                    .collect(Collectors.toList());
         }
 
-        searchResult.setSpamCount(spamRepository.getSpamCount(phone.trim()));
-
-        return new ResponseEntity<>(searchResult, HttpStatus.OK);
+        return new ResponseEntity<>(new SearchResponse(searchResultList), HttpStatus.OK);
     }
 
     private boolean inPersonsContacts(User user, CustomUserDetail userDetail) {

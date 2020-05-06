@@ -15,5 +15,5 @@ public interface UserService {
 
     ResponseEntity<?> searchByNumber(String key, int pageNo, int pageSize) throws BadRequestException, NotFoundException;
 
-    ResponseEntity<?> getNumberDetails(String phone, String name, CustomUserDetail userDetail) throws BadRequestException;
+    ResponseEntity<?> getNumberDetails(String phone, CustomUserDetail userDetail) throws BadRequestException;
 }

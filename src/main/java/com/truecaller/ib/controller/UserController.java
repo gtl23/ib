@@ -47,10 +47,9 @@ public class UserController {
 
     @GetMapping("/details")
     public ResponseEntity<?> numberDetails(@RequestParam String phone,
-                                           @RequestParam(required = false) String name,
                                            @AuthenticationPrincipal CustomUserDetail userDetail)
             throws BadRequestException {
-        return userService.getNumberDetails(phone, name, userDetail);
+        return userService.getNumberDetails(phone, userDetail);
     }
 
 }

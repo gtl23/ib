@@ -21,6 +21,10 @@ public class SearchResponse {
     public SearchResponse() {
     }
 
+    public SearchResponse(List<SearchResult> searchResults) {
+        this.searchResults = searchResults;
+    }
+
     public List<SearchResult> getSearchResults() {
         return searchResults;
     }

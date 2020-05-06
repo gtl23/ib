@@ -26,6 +26,12 @@ public class SearchResult {
     public SearchResult() {
     }
 
+    public SearchResult(String name, String phone, Long spamCount) {
+        this.name = name;
+        this.phone = phone;
+        this.spamCount = spamCount;
+    }
+
     public String getName() {
         return name;
     }
