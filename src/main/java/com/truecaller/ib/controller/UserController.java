@@ -37,4 +37,12 @@ public class UserController {
         return userService.markSpam(phone, userDetail);
     }
 
+    @GetMapping("/search_by_number")
+    public ResponseEntity<?> searchByNumber(@RequestParam String key,
+                                            @RequestParam int pageNo,
+                                            @RequestParam int pageSize)
+            throws BadRequestException, NotFoundException {
+        return userService.searchByNumber(key, pageNo, pageSize);
+    }
+
 }

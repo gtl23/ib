@@ -5,6 +5,7 @@ import com.truecaller.ib.entity.User;
 import com.truecaller.ib.exceptions.BadRequestException;
 import com.truecaller.ib.exceptions.NotFoundException;
 import com.truecaller.ib.model.*;
+import com.truecaller.ib.repository.ContactsRepository;
 import com.truecaller.ib.repository.SpamRepository;
 import com.truecaller.ib.repository.UserRepository;
 import com.truecaller.ib.security.CustomUserDetail;
@@ -40,6 +41,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     SpamRepository spamRepository;
+
+    @Autowired
+    ContactsRepository contactsRepository;
 
 
     @Override
@@ -80,22 +84,22 @@ public class UserServiceImpl implements UserService {
         if (key.trim().isEmpty())
             throw new BadRequestException("No search key provided.");
 
-        pageNo = pageNo/pageSize;
+        pageNo = pageNo / pageSize;
 
         Page<SearchProjection> searchProjectionList =
-                userRepository.searchByName(key, PageRequest.of(pageNo,pageSize));
+                userRepository.searchByName(key, PageRequest.of(pageNo, pageSize));
 
         if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty())
             throw new NotFoundException("No records found");
 
         List<SearchResult> searchResults = new ArrayList<>();
-        for (SearchProjection searchProjection : searchProjectionList.getContent()) {
+        searchProjectionList.getContent().forEach(searchProjection -> {
             Long spamCount = spamRepository.getSpamCount(searchProjection.getPhone());
             SearchResult searchResult = new SearchResult();
             BeanUtils.copyProperties(searchProjection, searchResult);
             searchResult.setSpamCount(spamCount);
             searchResults.add(searchResult);
-        }
+        });
 
         return new ResponseEntity<>(new SearchResponse(searchResults, searchProjectionList.getTotalElements())
                 , HttpStatus.OK);
@@ -117,10 +121,46 @@ public class UserServiceImpl implements UserService {
 
         try {
             spamRepository.save(spam);
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new BadRequestException("You've already reported this number as spam.");
         }
 
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @Override
+    public ResponseEntity<?> searchByNumber(String key, int pageNo, int pageSize)
+            throws BadRequestException, NotFoundException {
+
+        if (key.trim().isEmpty() || key.length() != 10)
+            throw new BadRequestException("Invalid phone number.");
+
+        Optional<User> user = userRepository.findByPhone(key);
+        SearchResponse searchResponses = new SearchResponse();
+        List<SearchResult> searchResultList = new ArrayList<>();
+
+        if (user.isPresent()) {
+            SearchResult searchResult = new SearchResult(user.get().getName(), user.get().getPhone());
+            searchResultList.add(searchResult);
+            searchResponses.setSearchResults(searchResultList);
+            return new ResponseEntity<>(searchResponses, HttpStatus.OK);
+        } else {
+            pageNo = pageNo / pageSize;
+            Page<SearchProjection> searchProjectionList =
+                    contactsRepository.findByPhone(key.trim(), PageRequest.of(pageNo, pageSize));
+
+            if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty())
+                throw new NotFoundException("No records found");
+
+            searchProjectionList.getContent().forEach(searchProjection -> {
+                SearchResult searchResult = new SearchResult();
+                BeanUtils.copyProperties(searchProjection, searchResult);
+                searchResultList.add(searchResult);
+            });
+
+            return new ResponseEntity<>(new SearchResponse(searchResultList, searchProjectionList.getTotalElements())
+                    , HttpStatus.OK);
+
+        }
     }
 }

@@ -15,6 +15,17 @@ public class SearchResult {
     @JsonProperty("email")
     private String email;
 
+    @JsonProperty("spam_count")
+    private Long spamCount;
+
+    public SearchResult(String name, String phone) {
+        this.name = name;
+        this.phone = phone;
+    }
+
+    public SearchResult() {
+    }
+
     public String getName() {
         return name;
     }
@@ -47,7 +58,5 @@ public class SearchResult {
         this.spamCount = spamCount;
     }
 
-    @JsonProperty("spam_count")
-    private Long spamCount;
 
 }
