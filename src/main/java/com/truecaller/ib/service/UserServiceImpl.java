@@ -215,7 +215,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> user = userRepository.findByPhone(phone);
         if (user.isPresent()) {
             SearchResult searchResult = new SearchResult(user.get().getName(),
-                    user.get().getName(), spamCount);
+                    user.get().getPhone(), spamCount);
 
             if (inPersonsContacts(user.get(), userDetail))
                 searchResult.setEmail(user.get().getEmail());
