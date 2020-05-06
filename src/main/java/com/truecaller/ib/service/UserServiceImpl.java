@@ -1,22 +1,26 @@
 package com.truecaller.ib.service;
 
+import com.truecaller.ib.entity.Spam;
 import com.truecaller.ib.entity.User;
 import com.truecaller.ib.exceptions.BadRequestException;
 import com.truecaller.ib.exceptions.NotFoundException;
 import com.truecaller.ib.model.*;
 import com.truecaller.ib.repository.SpamRepository;
 import com.truecaller.ib.repository.UserRepository;
+import com.truecaller.ib.security.CustomUserDetail;
 import com.truecaller.ib.security.CustomUserDetailService;
 import com.truecaller.ib.security.JwtUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.*;
 
 @Service
@@ -65,7 +69,7 @@ public class UserServiceImpl implements UserService {
 
         final UserDetails userDetails = userDetailService.loadUserByUsername(signUpRequest.getPhone());
         final String jwt = jwtUtil.generateToken(userDetails);
-        return ResponseEntity.ok(new AuthenticationResponse(jwt));
+        return new ResponseEntity<>(new AuthenticationResponse(jwt), HttpStatus.CREATED);
 
     }
 
@@ -93,6 +97,30 @@ public class UserServiceImpl implements UserService {
             searchResults.add(searchResult);
         }
 
-        return ResponseEntity.ok(new SearchResponse(searchResults, searchProjectionList.getTotalElements()));
+        return new ResponseEntity<>(new SearchResponse(searchResults, searchProjectionList.getTotalElements())
+                , HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> markSpam(String phone, CustomUserDetail userDetail) throws BadRequestException {
+
+        if (phone.trim().isEmpty())
+            throw new BadRequestException("No phone number provided.");
+
+        Spam spam = new Spam();
+        spam.setPhone(phone.trim());
+
+        Optional<User> user = userRepository.findByPhone(userDetail.getUsername());
+        user.orElseThrow(() -> new BadRequestException("You must be a registered user to report spam"));
+
+        spam.setReportedBy(user.get().getId());
+
+        try {
+            spamRepository.save(spam);
+        }catch (Exception e){
+            throw new BadRequestException("You've already reported this number as spam.");
+        }
+
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }
