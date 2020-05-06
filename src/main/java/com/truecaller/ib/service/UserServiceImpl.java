@@ -2,19 +2,22 @@ package com.truecaller.ib.service;
 
 import com.truecaller.ib.entity.User;
 import com.truecaller.ib.exceptions.BadRequestException;
-import com.truecaller.ib.model.AuthenticationResponse;
-import com.truecaller.ib.model.SignUpRequest;
+import com.truecaller.ib.exceptions.NotFoundException;
+import com.truecaller.ib.model.*;
+import com.truecaller.ib.repository.SpamRepository;
 import com.truecaller.ib.repository.UserRepository;
 import com.truecaller.ib.security.CustomUserDetailService;
 import com.truecaller.ib.security.JwtUtil;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -30,6 +33,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     CustomUserDetailService userDetailService;
+
+    @Autowired
+    SpamRepository spamRepository;
 
 
     @Override
@@ -61,5 +67,32 @@ public class UserServiceImpl implements UserService {
         final String jwt = jwtUtil.generateToken(userDetails);
         return ResponseEntity.ok(new AuthenticationResponse(jwt));
 
+    }
+
+    @Override
+    public ResponseEntity<?> searchByName(String key, int pageNo, int pageSize)
+            throws BadRequestException, NotFoundException {
+
+        if (key.trim().isEmpty())
+            throw new BadRequestException("No search key provided.");
+
+        pageNo = pageNo/pageSize;
+
+        Page<SearchProjection> searchProjectionList =
+                userRepository.searchByName(key, PageRequest.of(pageNo,pageSize));
+
+        if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty())
+            throw new NotFoundException("No records found");
+
+        List<SearchResult> searchResults = new ArrayList<>();
+        for (SearchProjection searchProjection : searchProjectionList.getContent()) {
+            Long spamCount = spamRepository.getSpamCount(searchProjection.getPhone());
+            SearchResult searchResult = new SearchResult();
+            BeanUtils.copyProperties(searchProjection, searchResult);
+            searchResult.setSpamCount(spamCount);
+            searchResults.add(searchResult);
+        }
+
+        return ResponseEntity.ok(new SearchResponse(searchResults, searchProjectionList.getTotalElements()));
     }
 }
