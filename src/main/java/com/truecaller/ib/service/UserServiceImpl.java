@@ -242,7 +242,9 @@ public class UserServiceImpl implements UserService {
 
             if (inPersonsContacts(user.get(), userDetail)){
                 logger.info(ResponseMessages.IN_CONTACT);
-                searchResult.setEmail(user.get().getEmail());
+
+                // if there is no email for the account, return empty string
+                searchResult.setEmail(user.get().getEmail() == null ? "" : user.get().getEmail());
             }
 
             searchResultList.add(searchResult);
