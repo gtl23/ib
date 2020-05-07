@@ -19,5 +19,6 @@ public class ResponseMessages {
     public static final String SEARCH_BY_NUMBER_RESPONSE = "Returning search by number response.";
     public static final String NUMBER_DETAIL_RESPONSE = "Returning number detail response.";
     public static final String IN_CONTACT = "Logged in user is in contact list of requested number.";
+    public static final String PAGINATION_MESSAGE = "Page no. should be greater than 0 and page size should be greater than 1";
 
 }

@@ -107,6 +107,9 @@ public class UserServiceImpl implements UserService {
             throws BadRequestException, NotFoundException {
         logger.info("Inside UserServiceImpl.searchByName().......");
 
+        if (pageNo < 0 || pageSize < 1)
+            throw new BadRequestException(ResponseMessages.PAGINATION_MESSAGE);
+
         if (key.trim().isEmpty()){
             logger.info(ResponseMessages.NO_SEARCH_KEY);
             throw new BadRequestException(ResponseMessages.NO_SEARCH_KEY);
@@ -179,6 +182,9 @@ public class UserServiceImpl implements UserService {
             throws BadRequestException, NotFoundException {
 
         logger.info("Inside UserServiceImpl.searchByNumber().......");
+
+        if (pageNo < 0 || pageSize < 1)
+            throw new BadRequestException(ResponseMessages.PAGINATION_MESSAGE);
 
         if (key.trim().isEmpty() || key.length() != 10){
             logger.info(ResponseMessages.INVALID_PHONE_NUMBER);
