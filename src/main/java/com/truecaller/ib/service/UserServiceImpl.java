@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
             throws BadRequestException, NotFoundException {
         logger.info("Inside UserServiceImpl.searchByName().......");
 
-        if (pageNo < 0 || pageSize < 1)
+        if (pageNo <= 0 || pageSize < 1)
             throw new BadRequestException(ResponseMessages.PAGINATION_MESSAGE);
 
         if (key.trim().isEmpty()){
@@ -115,10 +115,9 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException(ResponseMessages.NO_SEARCH_KEY);
         }
 
-        pageNo = pageNo / pageSize;
 
         Page<SearchProjection> searchProjectionList =
-                userRepository.searchByName(key, PageRequest.of(pageNo, pageSize));
+                userRepository.searchByName(key, PageRequest.of(pageNo - 1, pageSize));
 
         if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty()){
             logger.info(ResponseMessages.NO_RECORDS_FOUND);
@@ -183,7 +182,7 @@ public class UserServiceImpl implements UserService {
 
         logger.info("Inside UserServiceImpl.searchByNumber().......");
 
-        if (pageNo < 0 || pageSize < 1)
+        if (pageNo <= 0 || pageSize < 1)
             throw new BadRequestException(ResponseMessages.PAGINATION_MESSAGE);
 
         if (key.trim().isEmpty() || key.length() != 10 || key.startsWith("0")){
@@ -201,9 +200,8 @@ public class UserServiceImpl implements UserService {
             searchResponses.setSearchResults(searchResultList);
             return new ResponseEntity<>(searchResponses, HttpStatus.OK);
         } else {
-            pageNo = pageNo / pageSize;
             Page<SearchProjection> searchProjectionList =
-                    contactsRepository.findByPhone(key.trim(), PageRequest.of(pageNo, pageSize));
+                    contactsRepository.findByPhone(key.trim(), PageRequest.of(pageNo - 1, pageSize));
 
             if (Objects.isNull(searchProjectionList) || searchProjectionList.isEmpty()){
                 logger.info(ResponseMessages.NO_RECORDS_FOUND);
