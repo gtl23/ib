@@ -79,6 +79,12 @@ public class UserServiceImpl implements UserService {
         newUser.setPhone(signUpRequest.getPhone());
         newUser.setName(signUpRequest.getName());
 
+        /*
+        Since we've unique key constraint for phone number in the database,
+        we don't need to bother for checking the existence of a record
+        before inserting, simply insert the record. If this throws any exception,
+        it means the record is already present.
+         */
         try {
             userRepository.save(newUser);
         } catch (Exception exception) {
@@ -86,6 +92,9 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException(ResponseMessages.ALREADY_REGISTERED);
         }
 
+        /*
+        Returning the jwt after successful creation of record
+         */
         final UserDetails userDetails = userDetailService.loadUserByUsername(signUpRequest.getPhone());
         final String jwt = jwtUtil.generateToken(userDetails);
         logger.info(ResponseMessages.SIGN_UP_SUCCESSFUL);
@@ -141,11 +150,19 @@ public class UserServiceImpl implements UserService {
         Spam spam = new Spam();
         spam.setPhone(phone.trim());
 
+        /*
+        If a malicious user somehow manages the bypass the security,
+        we'll verify them here in our records
+         */
         Optional<User> user = userRepository.findByPhone(userDetail.getUsername());
         User userData = user.orElseThrow(() -> new BadRequestException(ResponseMessages.NOT_REGISTERED));
 
         spam.setReportedBy(userData.getId());
 
+        /*
+        To prevent the user from marking a number as spam multiple times,
+        we've (phone_number, reported_by) unique key constraint in the database
+         */
         try {
             spamRepository.save(spam);
         } catch (Exception e) {
@@ -239,6 +256,10 @@ public class UserServiceImpl implements UserService {
         return new ResponseEntity<>(new SearchResponse(searchResultList), HttpStatus.OK);
     }
 
+    /*
+    checking whether the person making this search request is in
+    the contact list of the number for which the person is searching.
+     */
     private boolean inPersonsContacts(User user, CustomUserDetail userDetail) {
         Optional<Contacts> contacts = contactsRepository.
                 checkUsersContacts(user.getId(), userDetail.getUsername());
