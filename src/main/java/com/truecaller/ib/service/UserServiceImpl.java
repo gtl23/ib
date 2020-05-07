@@ -186,7 +186,7 @@ public class UserServiceImpl implements UserService {
         if (pageNo < 0 || pageSize < 1)
             throw new BadRequestException(ResponseMessages.PAGINATION_MESSAGE);
 
-        if (key.trim().isEmpty() || key.length() != 10){
+        if (key.trim().isEmpty() || key.length() != 10 || key.startsWith("0")){
             logger.info(ResponseMessages.INVALID_PHONE_NUMBER);
             throw new BadRequestException(ResponseMessages.INVALID_PHONE_NUMBER);
         }
