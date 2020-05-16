@@ -1,4 +1,4 @@
-This is simple backend application trying to replicate some 
+This is a simple backend application trying to replicate some 
 functionalities of a very popular app primarily used for searching
 and identifying unknown phone numbers, **_TrueCaller_**.
 
