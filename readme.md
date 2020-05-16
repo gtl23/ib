@@ -58,7 +58,7 @@ For every account in the user table, the password is 123456. The project is also
 integrated with Swagger for api documentation which can be accessed 
 by hitting http://localhost:8080/swagger-ui.html from your browser once the 
 project start to run successfully. You can also get the post collection of the 
-api's by importing below link in postman 
+api's by importing this link in postman 
 https://www.getpostman.com/collections/a8e9ba565dd148bd38e9
 
 **NOTE : ** Make sure to set the database credentials in the application.properties 
