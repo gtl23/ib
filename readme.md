@@ -57,7 +57,7 @@ with some data. Now run the application from IbApplication.java file.
 For every account in the user table, the password is 123456. The project is also 
 integrated with Swagger for api documentation which can be accessed 
 by hitting http://localhost:8080/swagger-ui.html from your browser once the 
-project start to run successfully. You can also get the post collection of the 
+project start to run successfully. You can also get the postman collection of the 
 api's by importing this link in postman 
 https://www.getpostman.com/collections/a8e9ba565dd148bd38e9
 
